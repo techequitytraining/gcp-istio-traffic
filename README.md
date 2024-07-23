@@ -1,4 +1,4 @@
-# Istio Service Mesh Traffic Management Features Demo on GKE
+# Istio Service Mesh Traffic Management Features on GKE Demo Script
 
 ## 🚦 Explore Advanced Traffic Control with Istio on Google Kubernetes Engine
 
