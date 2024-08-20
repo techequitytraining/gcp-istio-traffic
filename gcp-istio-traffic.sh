@@ -61,8 +61,8 @@ else
 cat <<EOF > $PROJDIR/.env
 export GCP_PROJECT=$GCP_PROJECT
 export GCP_CLUSTER=istio-gke-cluster
-export ISTIO_VERSION=1.22.3
-export ISTIO_RELEASE_VERSION=1.22
+export ISTIO_VERSION=1.23.0
+export ISTIO_RELEASE_VERSION=1.23
 export GCP_REGION=us-central1
 export GCP_ZONE=us-central1-a
 EOF
