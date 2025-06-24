@@ -360,7 +360,7 @@ source $PROJDIR/.env
 if [ $MODE -eq 1 ]; then
     export STEP="${STEP},3i"
     echo
-    echo "$ gcloud --project \$GCP_PROJECT beta container clusters create \$GCP_CLUSTER --zone \$GCP_ZONE --machine-type e2-medium --num-nodes 5 --labels location=\$GCP_REGION --spot # to create container cluster" | pv -qL 100
+    echo "$ gcloud --project \$GCP_PROJECT beta container clusters create \$GCP_CLUSTER --zone \$GCP_ZONE --machine-type n1-standard-2 --num-nodes 5 --labels location=\$GCP_REGION --spot --gateway-api=standard # to create container cluster" | pv -qL 100
     echo      
     echo "$ gcloud --project \$GCP_PROJECT container clusters get-credentials \$GCP_CLUSTER --zone \$GCP_ZONE # to retrieve the credentials for cluster" | pv -qL 100
     echo
@@ -370,8 +370,8 @@ elif [ $MODE -eq 2 ]; then
     gcloud config set project $GCP_PROJECT > /dev/null 2>&1 
     gcloud config set compute/zone $GCP_ZONE > /dev/null 2>&1 
     echo
-    echo "$ gcloud --project $GCP_PROJECT beta container clusters create $GCP_CLUSTER --zone $GCP_ZONE --machine-type e2-medium --num-nodes 5 --labels location=$GCP_REGION --spot # to create container cluster" | pv -qL 100
-    gcloud --project $GCP_PROJECT beta container clusters create $GCP_CLUSTER --zone $GCP_ZONE --machine-type e2-medium --num-nodes 5 --labels location=$GCP_REGION --spot
+    echo "$ gcloud --project $GCP_PROJECT beta container clusters create $GCP_CLUSTER --zone $GCP_ZONE --machine-type n1-standard-2 --num-nodes 5 --labels location=$GCP_REGION --spot --gateway-api=standard # to create container cluster" | pv -qL 100
+    gcloud --project $GCP_PROJECT beta container clusters create $GCP_CLUSTER --zone $GCP_ZONE --machine-type n1-standard-2 --num-nodes 5 --labels location=$GCP_REGION --spot --gateway-api=standard
     echo      
     echo "$ gcloud --project $GCP_PROJECT container clusters get-credentials $GCP_CLUSTER --zone $GCP_ZONE # to retrieve the credentials for cluster" | pv -qL 100
     gcloud --project $GCP_PROJECT container clusters get-credentials $GCP_CLUSTER --zone $GCP_ZONE
