@@ -569,7 +569,7 @@ elif [ $MODE -eq 3 ]; then
     kubectl label namespace $APPLICATION_NAMESPACE istio-injection- 
     echo
     echo "$ kubectl delete namespace $APPLICATION_NAMESPACE # to delete namespace" | pv -qL 100
-    kubectl create namespace $APPLICATION_NAMESPACE 2> /dev/null
+    kubectl delete namespace $APPLICATION_NAMESPACE 2> /dev/null
 else
     export STEP="${STEP},5i"   
     echo
