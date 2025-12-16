@@ -63,11 +63,10 @@ if [ -f "$PROJDIR/.env" ]; then
 else
 cat <<EOF > $PROJDIR/.env
 export GCP_PROJECT=$GCP_PROJECT
-export GCP_CLUSTER=istio-gke-cluster
+export GCP_CLUSTER=gke-cluster
 export ISTIO_VERSION=1.24.2
 export ISTIO_RELEASE_VERSION=1.24
 export GCP_REGION=us-central1
-export GCP_ZONE=us-central1-a
 EOF
 source $PROJDIR/.env
 fi
@@ -151,14 +150,12 @@ export GCP_CLUSTER=$GCP_CLUSTER
 export ISTIO_VERSION=$ISTIO_VERSION
 export ISTIO_RELEASE_VERSION=$ISTIO_RELEASE_VERSION
 export GCP_REGION=$GCP_REGION
-export GCP_ZONE=$GCP_ZONE
 EOF
         gsutil cp $PROJDIR/.env gs://${GCP_PROJECT}/${SCRIPTNAME}.env > /dev/null 2>&1
         echo
         echo "*** Google Cloud project is $GCP_PROJECT ***" | pv -qL 100
         echo "*** Google Cloud cluster is $GCP_CLUSTER ***" | pv -qL 100
         echo "*** Google Cloud region is $GCP_REGION ***" | pv -qL 100
-        echo "*** Google Cloud zone is $GCP_ZONE ***" | pv -qL 100
         echo "*** Istio version is $ISTIO_VERSION ***" | pv -qL 100
         echo "*** Istio release version is $ISTIO_RELEASE_VERSION ***" | pv -qL 100
         echo
@@ -245,14 +242,12 @@ export GCP_CLUSTER=$GCP_CLUSTER
 export ISTIO_VERSION=$ISTIO_VERSION
 export ISTIO_RELEASE_VERSION=$ISTIO_RELEASE_VERSION
 export GCP_REGION=$GCP_REGION
-export GCP_ZONE=$GCP_ZONE
 EOF
                 gsutil cp $PROJDIR/.env gs://${GCP_PROJECT}/${SCRIPTNAME}.env > /dev/null 2>&1
                 echo
                 echo "*** Google Cloud project is $GCP_PROJECT ***" | pv -qL 100
                 echo "*** Google Cloud cluster is $GCP_CLUSTER ***" | pv -qL 100
                 echo "*** Google Cloud region is $GCP_REGION ***" | pv -qL 100
-                echo "*** Google Cloud zone is $GCP_ZONE ***" | pv -qL 100
                 echo "*** Istio version is $ISTIO_VERSION ***" | pv -qL 100
                 echo "*** Istio release version is $ISTIO_RELEASE_VERSION ***" | pv -qL 100
                 echo
@@ -309,8 +304,8 @@ elif [ $MODE -eq 2 ]; then
     echo
     echo "$ curl -L https://github.com/istio/istio/releases/download/${ISTIO_VERSION}/istio-${ISTIO_VERSION}-linux-amd64.tar.gz | tar xz -C $HOME # to download Istio" | pv -qL 100
     curl -L https://github.com/istio/istio/releases/download/${ISTIO_VERSION}/istio-${ISTIO_VERSION}-linux-amd64.tar.gz | tar xz -C $HOME 
-    cd $HOME/istio-${ISTIO_VERSION} > /dev/null 2>&1 #Set project zone
-    export PATH=$HOME/istio-${ISTIO_VERSION}/bin:$PATH > /dev/null 2>&1 #Set project zone
+    cd $HOME/istio-${ISTIO_VERSION} > /dev/null 2>&1 #Set project 
+    export PATH=$HOME/istio-${ISTIO_VERSION}/bin:$PATH > /dev/null 2>&1 #Set project 
 elif [ $MODE -eq 3 ]; then
     export STEP="${STEP},1x"
     echo
@@ -334,13 +329,13 @@ source $PROJDIR/.env
 if [ $MODE -eq 1 ]; then
     export STEP="${STEP},2i"
     echo
-    echo "$ gcloud --project \$GCP_PROJECT services enable cloudapis.googleapis.com container.googleapis.com cloudscheduler.googleapis.com appengine.googleapis.com cloudscheduler.googleapis.com # to enable APIs" | pv -qL 100
+    echo "$ gcloud --project \$GCP_PROJECT services enable cloudapis.googleapis.com container.googleapis.com # to enable APIs" | pv -qL 100
 elif [ $MODE -eq 2 ]; then
     export STEP="${STEP},2"
     gcloud config set project $GCP_PROJECT > /dev/null 2>&1 
     echo
-    echo "$ gcloud --project $GCP_PROJECT services enable cloudapis.googleapis.com container.googleapis.com cloudscheduler.googleapis.com appengine.googleapis.com cloudscheduler.googleapis.com # to enable APIs" | pv -qL 100
-    gcloud --project $GCP_PROJECT services enable cloudapis.googleapis.com container.googleapis.com cloudscheduler.googleapis.com appengine.googleapis.com cloudscheduler.googleapis.com # to enable APIs
+    echo "$ gcloud --project $GCP_PROJECT services enable cloudapis.googleapis.com container.googleapis.com # to enable APIs" | pv -qL 100
+    gcloud --project $GCP_PROJECT services enable cloudapis.googleapis.com container.googleapis.com # to enable APIs
 elif [ $MODE -eq 3 ]; then
     export STEP="${STEP},2x"
     echo
@@ -363,31 +358,31 @@ source $PROJDIR/.env
 if [ $MODE -eq 1 ]; then
     export STEP="${STEP},3i"
     echo
-    echo "$ gcloud --project \$GCP_PROJECT beta container clusters create \$GCP_CLUSTER --zone \$GCP_ZONE --machine-type n1-standard-2 --num-nodes 5 --labels location=\$GCP_REGION --spot --gateway-api=standard # to create container cluster" | pv -qL 100
+    echo "$ gcloud --project \$GCP_PROJECT beta container clusters create \$GCP_CLUSTER --region \$GCP_REGION --machine-type n1-standard-2 --num-nodes 5 --labels location=\$GCP_REGION --spot --gateway-api=standard # to create container cluster" | pv -qL 100
     echo      
-    echo "$ gcloud --project \$GCP_PROJECT container clusters get-credentials \$GCP_CLUSTER --zone \$GCP_ZONE # to retrieve the credentials for cluster" | pv -qL 100
+    echo "$ gcloud --project \$GCP_PROJECT container clusters get-credentials \$GCP_CLUSTER --region \$GCP_REGION # to retrieve the credentials for cluster" | pv -qL 100
     echo
     echo "$ kubectl create clusterrolebinding cluster-admin-binding --clusterrole=cluster-admin --user=\"\$(gcloud config get-value core/account)\" # to enable current user to set RBAC rules" | pv -qL 100
 elif [ $MODE -eq 2 ]; then
     export STEP="${STEP},3"   
     gcloud config set project $GCP_PROJECT > /dev/null 2>&1 
-    gcloud config set compute/zone $GCP_ZONE > /dev/null 2>&1 
+    gcloud config set compute/region $GCP_REGION > /dev/null 2>&1 
     echo
-    echo "$ gcloud --project $GCP_PROJECT beta container clusters create $GCP_CLUSTER --zone $GCP_ZONE --machine-type n1-standard-2 --num-nodes 5 --labels location=$GCP_REGION --spot --gateway-api=standard # to create container cluster" | pv -qL 100
-    gcloud --project $GCP_PROJECT beta container clusters create $GCP_CLUSTER --zone $GCP_ZONE --machine-type n1-standard-2 --num-nodes 5 --labels location=$GCP_REGION --spot --gateway-api=standard
+    echo "$ gcloud --project $GCP_PROJECT beta container clusters create $GCP_CLUSTER --region $GCP_REGION --machine-type n1-standard-2 --num-nodes 5 --labels location=$GCP_REGION --spot --gateway-api=standard # to create container cluster" | pv -qL 100
+    gcloud --project $GCP_PROJECT beta container clusters create $GCP_CLUSTER --region $GCP_REGION --machine-type n1-standard-2 --num-nodes 5 --labels location=$GCP_REGION --spot --gateway-api=standard
     echo      
-    echo "$ gcloud --project $GCP_PROJECT container clusters get-credentials $GCP_CLUSTER --zone $GCP_ZONE # to retrieve the credentials for cluster" | pv -qL 100
-    gcloud --project $GCP_PROJECT container clusters get-credentials $GCP_CLUSTER --zone $GCP_ZONE
+    echo "$ gcloud --project $GCP_PROJECT container clusters get-credentials $GCP_CLUSTER --region $GCP_REGION # to retrieve the credentials for cluster" | pv -qL 100
+    gcloud --project $GCP_PROJECT container clusters get-credentials $GCP_CLUSTER --region $GCP_REGION
     echo
     echo "$ kubectl create clusterrolebinding cluster-admin-binding --clusterrole=cluster-admin --user=\"\$(gcloud config get-value core/account)\" # to enable current user to set RBAC rules" | pv -qL 100
     kubectl create clusterrolebinding cluster-admin-binding --clusterrole=cluster-admin --user="$(gcloud config get-value core/account)"
 elif [ $MODE -eq 3 ]; then
     export STEP="${STEP},3x"   
     gcloud config set project $GCP_PROJECT > /dev/null 2>&1 
-    gcloud config set compute/zone $GCP_ZONE > /dev/null 2>&1 
+    gcloud config set compute/region $GCP_REGION > /dev/null 2>&1 
     echo
-    echo "$ gcloud --project $GCP_PROJECT beta container clusters delete ${GCP_CLUSTER} --zone $GCP_ZONE # to create container cluster" | pv -qL 100
-    gcloud --project $GCP_PROJECT beta container clusters delete ${GCP_CLUSTER} --zone $GCP_ZONE
+    echo "$ gcloud --project $GCP_PROJECT beta container clusters delete ${GCP_CLUSTER} --region $GCP_REGION # to create container cluster" | pv -qL 100
+    gcloud --project $GCP_PROJECT beta container clusters delete ${GCP_CLUSTER} --region $GCP_REGION
 else
     export STEP="${STEP},3i"   
     echo
@@ -442,9 +437,9 @@ EOF" | pv -qL 100
 elif [ $MODE -eq 2 ]; then
     export STEP="${STEP},4"   
     gcloud config set project $GCP_PROJECT > /dev/null 2>&1 
-    gcloud config set compute/zone $GCP_ZONE > /dev/null 2>&1 
-    kubectl config use-context gke_${GCP_PROJECT}_${GCP_ZONE}_${GCP_CLUSTER} > /dev/null 2>&1 
-    gcloud --project $GCP_PROJECT container clusters get-credentials $GCP_CLUSTER --zone $GCP_ZONE > /dev/null 2>&1 
+    gcloud config set compute/region $GCP_REGION > /dev/null 2>&1 
+    kubectl config use-context gke_${GCP_PROJECT}_${GCP_REGION}_${GCP_CLUSTER} > /dev/null 2>&1 
+    gcloud --project $GCP_PROJECT container clusters get-credentials $GCP_CLUSTER --region $GCP_REGION > /dev/null 2>&1 
     echo
     echo "$ $HOME/istio-${ISTIO_VERSION}/bin/istioctl install --set profile=default -y # to install Istio" | pv -qL 100
     $HOME/istio-${ISTIO_VERSION}/bin/istioctl install --set profile=default -y
@@ -504,9 +499,9 @@ EOF
 elif [ $MODE -eq 3 ]; then
     export STEP="${STEP},4x"   
     gcloud config set project $GCP_PROJECT > /dev/null 2>&1 
-    gcloud config set compute/zone $GCP_ZONE > /dev/null 2>&1 
-    kubectl config use-context gke_${GCP_PROJECT}_${GCP_ZONE}_${GCP_CLUSTER} > /dev/null 2>&1 
-    gcloud --project $GCP_PROJECT container clusters get-credentials $GCP_CLUSTER --zone $GCP_ZONE > /dev/null 2>&1 
+    gcloud config set compute/region $GCP_REGION > /dev/null 2>&1 
+    kubectl config use-context gke_${GCP_PROJECT}_${GCP_REGION}_${GCP_CLUSTER} > /dev/null 2>&1 
+    gcloud --project $GCP_PROJECT container clusters get-credentials $GCP_CLUSTER --region $GCP_REGION > /dev/null 2>&1 
     echo
     echo "$ $PROJDIR/istio-$ASM_VERSION/bin/istioctl uninstall --purge # to remove istio" | pv -qL 100
     $PROJDIR/istio-$ASM_VERSION/bin/istioctl uninstall --purge
@@ -552,9 +547,9 @@ if [ $MODE -eq 1 ]; then
 elif [ $MODE -eq 2 ]; then
     export STEP="${STEP},5"
     gcloud config set project $GCP_PROJECT > /dev/null 2>&1 
-    gcloud config set compute/zone $GCP_ZONE > /dev/null 2>&1 
-    kubectl config use-context gke_${GCP_PROJECT}_${GCP_ZONE}_${GCP_CLUSTER} > /dev/null 2>&1 
-    gcloud --project $GCP_PROJECT container clusters get-credentials $GCP_CLUSTER --zone $GCP_ZONE > /dev/null 2>&1 
+    gcloud config set compute/region $GCP_REGION > /dev/null 2>&1 
+    kubectl config use-context gke_${GCP_PROJECT}_${GCP_REGION}_${GCP_CLUSTER} > /dev/null 2>&1 
+    gcloud --project $GCP_PROJECT container clusters get-credentials $GCP_CLUSTER --region $GCP_REGION > /dev/null 2>&1 
     echo
     echo "$ kubectl create namespace $APPLICATION_NAMESPACE # to create namespace" | pv -qL 100
     kubectl create namespace $APPLICATION_NAMESPACE 2> /dev/null
@@ -564,9 +559,9 @@ elif [ $MODE -eq 2 ]; then
 elif [ $MODE -eq 3 ]; then
     export STEP="${STEP},5x"
     gcloud config set project $GCP_PROJECT > /dev/null 2>&1 
-    gcloud config set compute/zone $GCP_ZONE > /dev/null 2>&1 
-    kubectl config use-context gke_${GCP_PROJECT}_${GCP_ZONE}_${GCP_CLUSTER} > /dev/null 2>&1 
-    gcloud --project $GCP_PROJECT container clusters get-credentials $GCP_CLUSTER --zone $GCP_ZONE > /dev/null 2>&1 
+    gcloud config set compute/region $GCP_REGION > /dev/null 2>&1 
+    kubectl config use-context gke_${GCP_PROJECT}_${GCP_REGION}_${GCP_CLUSTER} > /dev/null 2>&1 
+    gcloud --project $GCP_PROJECT container clusters get-credentials $GCP_CLUSTER --region $GCP_REGION > /dev/null 2>&1 
     echo
     echo "$ kubectl label namespace $APPLICATION_NAMESPACE istio-injection- # to delete label" | pv -qL 100
     kubectl label namespace $APPLICATION_NAMESPACE istio-injection- 
@@ -596,9 +591,9 @@ if [ $MODE -eq 1 ]; then
 elif [ $MODE -eq 2 ]; then
     export STEP="${STEP},6"        
     gcloud config set project $GCP_PROJECT > /dev/null 2>&1 
-    gcloud config set compute/zone $GCP_ZONE > /dev/null 2>&1 
-    kubectl config use-context gke_${GCP_PROJECT}_${GCP_ZONE}_${GCP_CLUSTER} > /dev/null 2>&1 
-    gcloud --project $GCP_PROJECT container clusters get-credentials $GCP_CLUSTER --zone $GCP_ZONE > /dev/null 2>&1 
+    gcloud config set compute/region $GCP_REGION > /dev/null 2>&1 
+    kubectl config use-context gke_${GCP_PROJECT}_${GCP_REGION}_${GCP_CLUSTER} > /dev/null 2>&1 
+    gcloud --project $GCP_PROJECT container clusters get-credentials $GCP_CLUSTER --region $GCP_REGION > /dev/null 2>&1 
     echo
     echo "$ kubectl -n $APPLICATION_NAMESPACE apply -f $HOME/istio-${ISTIO_VERSION}/samples/bookinfo/platform/kube/bookinfo.yaml # to configure application" | pv -qL 100
     kubectl -n $APPLICATION_NAMESPACE apply -f $HOME/istio-${ISTIO_VERSION}/samples/bookinfo/platform/kube/bookinfo.yaml
@@ -608,9 +603,9 @@ elif [ $MODE -eq 2 ]; then
 elif [ $MODE -eq 3 ]; then
     export STEP="${STEP},6x"        
     gcloud config set project $GCP_PROJECT > /dev/null 2>&1 
-    gcloud config set compute/zone $GCP_ZONE > /dev/null 2>&1 
-    kubectl config use-context gke_${GCP_PROJECT}_${GCP_ZONE}_${GCP_CLUSTER} > /dev/null 2>&1 
-    gcloud --project $GCP_PROJECT container clusters get-credentials $GCP_CLUSTER --zone $GCP_ZONE > /dev/null 2>&1 
+    gcloud config set compute/region $GCP_REGION > /dev/null 2>&1 
+    kubectl config use-context gke_${GCP_PROJECT}_${GCP_REGION}_${GCP_CLUSTER} > /dev/null 2>&1 
+    gcloud --project $GCP_PROJECT container clusters get-credentials $GCP_CLUSTER --region $GCP_REGION > /dev/null 2>&1 
     echo
     echo "$ kubectl -n $APPLICATION_NAMESPACE delete -f $HOME/istio-${ISTIO_VERSION}/samples/bookinfo/platform/kube/bookinfo.yaml # to delete application" | pv -qL 100
     kubectl -n $APPLICATION_NAMESPACE delete -f $HOME/istio-${ISTIO_VERSION}/samples/bookinfo/platform/kube/bookinfo.yaml
@@ -636,18 +631,18 @@ if [ $MODE -eq 1 ]; then
 elif [ $MODE -eq 2 ]; then
     export STEP="${STEP},7"
     gcloud config set project $GCP_PROJECT > /dev/null 2>&1 
-    gcloud config set compute/zone $GCP_ZONE > /dev/null 2>&1 
-    kubectl config use-context gke_${GCP_PROJECT}_${GCP_ZONE}_${GCP_CLUSTER} > /dev/null 2>&1 
-    gcloud --project $GCP_PROJECT container clusters get-credentials $GCP_CLUSTER --zone $GCP_ZONE > /dev/null 2>&1 
+    gcloud config set compute/region $GCP_REGION > /dev/null 2>&1 
+    kubectl config use-context gke_${GCP_PROJECT}_${GCP_REGION}_${GCP_CLUSTER} > /dev/null 2>&1 
+    gcloud --project $GCP_PROJECT container clusters get-credentials $GCP_CLUSTER --region $GCP_REGION > /dev/null 2>&1 
     echo
     echo "$ kubectl -n $APPLICATION_NAMESPACE apply -f $HOME/istio-${ISTIO_VERSION}/samples/bookinfo/networking/bookinfo-gateway.yaml # to create ingress" | pv -qL 100
     kubectl -n $APPLICATION_NAMESPACE apply -f $HOME/istio-${ISTIO_VERSION}/samples/bookinfo/networking/bookinfo-gateway.yaml 
 elif [ $MODE -eq 3 ]; then
     export STEP="${STEP},7x"
     gcloud config set project $GCP_PROJECT > /dev/null 2>&1 
-    gcloud config set compute/zone $GCP_ZONE > /dev/null 2>&1 
-    kubectl config use-context gke_${GCP_PROJECT}_${GCP_ZONE}_${GCP_CLUSTER} > /dev/null 2>&1 
-    gcloud --project $GCP_PROJECT container clusters get-credentials $GCP_CLUSTER --zone $GCP_ZONE > /dev/null 2>&1 
+    gcloud config set compute/region $GCP_REGION > /dev/null 2>&1 
+    kubectl config use-context gke_${GCP_PROJECT}_${GCP_REGION}_${GCP_CLUSTER} > /dev/null 2>&1 
+    gcloud --project $GCP_PROJECT container clusters get-credentials $GCP_CLUSTER --region $GCP_REGION > /dev/null 2>&1 
     echo
     echo "$ kubectl -n $APPLICATION_NAMESPACE delete -f $HOME/istio-${ISTIO_VERSION}/samples/bookinfo/networking/bookinfo-gateway.yaml # to delete ingress" | pv -qL 100
     kubectl -n $APPLICATION_NAMESPACE delete -f $HOME/istio-${ISTIO_VERSION}/samples/bookinfo/networking/bookinfo-gateway.yaml 
@@ -673,9 +668,9 @@ if [ $MODE -eq 1 ]; then
 elif [ $MODE -eq 2 ]; then
     export STEP="${STEP},8"
     gcloud config set project $GCP_PROJECT > /dev/null 2>&1 
-    gcloud config set compute/zone $GCP_ZONE > /dev/null 2>&1 
-    kubectl config use-context gke_${GCP_PROJECT}_${GCP_ZONE}_${GCP_CLUSTER} > /dev/null 2>&1 
-    gcloud --project $GCP_PROJECT container clusters get-credentials $GCP_CLUSTER --zone $GCP_ZONE > /dev/null 2>&1 
+    gcloud config set compute/region $GCP_REGION > /dev/null 2>&1 
+    kubectl config use-context gke_${GCP_PROJECT}_${GCP_REGION}_${GCP_CLUSTER} > /dev/null 2>&1 
+    gcloud --project $GCP_PROJECT container clusters get-credentials $GCP_CLUSTER --region $GCP_REGION > /dev/null 2>&1 
     export CFILE=$HOME/istio-${ISTIO_VERSION}/samples/bookinfo/networking/destination-rule-all.yaml
     echo 
     echo "$ kubectl -n $APPLICATION_NAMESPACE apply -f $CFILE # to apply yaml file" | pv -qL 100
@@ -683,9 +678,9 @@ elif [ $MODE -eq 2 ]; then
 elif [ $MODE -eq 3 ]; then
     export STEP="${STEP},8x"
     gcloud config set project $GCP_PROJECT > /dev/null 2>&1 
-    gcloud config set compute/zone $GCP_ZONE > /dev/null 2>&1 
-    kubectl config use-context gke_${GCP_PROJECT}_${GCP_ZONE}_${GCP_CLUSTER} > /dev/null 2>&1 
-    gcloud --project $GCP_PROJECT container clusters get-credentials $GCP_CLUSTER --zone $GCP_ZONE > /dev/null 2>&1 
+    gcloud config set compute/region $GCP_REGION > /dev/null 2>&1 
+    kubectl config use-context gke_${GCP_PROJECT}_${GCP_REGION}_${GCP_CLUSTER} > /dev/null 2>&1 
+    gcloud --project $GCP_PROJECT container clusters get-credentials $GCP_CLUSTER --region $GCP_REGION > /dev/null 2>&1 
     export CFILE=$HOME/istio-${ISTIO_VERSION}/samples/bookinfo/networking/destination-rule-all.yaml
     echo 
     echo "$ kubectl -n $APPLICATION_NAMESPACE delete -f $CFILE # to apply yaml file" | pv -qL 100
@@ -806,7 +801,7 @@ EOF" | pv -qL 100
 elif [ $MODE -eq 2 ]; then
     export STEP="${STEP},9"
     gcloud config set project $GCP_PROJECT  > /dev/null 2>&1
-    kubectl config use-context gke_${GCP_PROJECT}_${GCP_ZONE}_${GCP_CLUSTER}  > /dev/null 2>&1
+    kubectl config use-context gke_${GCP_PROJECT}_${GCP_REGION}_${GCP_CLUSTER}  > /dev/null 2>&1
     gcloud --project $GCP_PROJECT container clusters get-credentials $GCP_CLUSTER  > /dev/null 2>&1
     echo
     echo "$ export INGRESS_HOST=\$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}') # to get ingress IP" | pv -qL 100
@@ -1104,19 +1099,19 @@ if [ $MODE -eq 1 ]; then
     echo
     echo "$ gcloud --project \$GCP_PROJECT beta container clusters update \$GCP_CLUSTER --update-addons=HttpLoadBalancing=ENABLED # to create container cluster" | pv -qL 100
     echo      
-    echo "$ gcloud --project \$GCP_PROJECT container clusters get-credentials \$GCP_CLUSTER --zone \$GCP_ZONE # to retrieve the credentials for cluster" | pv -qL 100
+    echo "$ gcloud --project \$GCP_PROJECT container clusters get-credentials \$GCP_CLUSTER --region \$GCP_REGION # to retrieve the credentials for cluster" | pv -qL 100
     echo
     echo "$ kubectl create clusterrolebinding cluster-admin-binding --clusterrole=cluster-admin --user=\"\$(gcloud config get-value core/account)\" # to enable current user to set RBAC rules" | pv -qL 100
     echo
     echo "$ gcloud --project \$GCP_PROJECT container fleet mesh enable # to enable ASM in fleet" | pv -qL 100
     echo
-    echo "$ gcloud --project \$GCP_PROJECT container fleet memberships register \$GCP_CLUSTER --gke-cluster=\$GCP_ZONE/\$GCP_CLUSTER --enable-workload-identity  # to register cluster" | pv -qL 100
+    echo "$ gcloud --project \$GCP_PROJECT container fleet memberships register \$GCP_CLUSTER --gke-cluster=\$GCP_REGION/\$GCP_CLUSTER --enable-workload-identity  # to register cluster" | pv -qL 100
     echo
     echo "$ gcloud --project \$GCP_PROJECT container fleet mesh update --control-plane automatic --memberships \$GCP_CLUSTER --project \$GCP_PROJECT # to enable automatic control plane management" | pv -qL 100
 elif [ $MODE -eq 2 ]; then
     export STEP="${STEP},12"   
     gcloud config set project $GCP_PROJECT > /dev/null 2>&1 
-    gcloud config set compute/zone $GCP_ZONE > /dev/null 2>&1 
+    gcloud config set compute/region $GCP_REGION > /dev/null 2>&1 
     export PROJECT_NUMBER=$(gcloud projects describe $GCP_PROJECT --format="value(projectNumber)")
     export MESH_ID="proj-${PROJECT_NUMBER}" # sets the mesh_id label on the cluster
     export WORKLOAD_POOL=${GCP_PROJECT}.svc.id.goog
@@ -1130,21 +1125,21 @@ elif [ $MODE -eq 2 ]; then
     echo "$ gcloud --project $GCP_PROJECT beta container clusters update $GCP_CLUSTER --update-addons=HttpLoadBalancing=ENABLED # to update container cluster" | pv -qL 100
     gcloud --project $GCP_PROJECT beta container clusters update $GCP_CLUSTER --update-addons=HttpLoadBalancing=ENABLED
     echo      
-    echo "$ gcloud --project $GCP_PROJECT container clusters get-credentials $GCP_CLUSTER --zone $GCP_ZONE # to retrieve the credentials for cluster" | pv -qL 100
-    gcloud --project $GCP_PROJECT container clusters get-credentials $GCP_CLUSTER --zone $GCP_ZONE
+    echo "$ gcloud --project $GCP_PROJECT container clusters get-credentials $GCP_CLUSTER --region $GCP_REGION # to retrieve the credentials for cluster" | pv -qL 100
+    gcloud --project $GCP_PROJECT container clusters get-credentials $GCP_CLUSTER --region $GCP_REGION
     echo
     echo "$ gcloud --project $GCP_PROJECT container fleet mesh enable # to enable ASM in fleet" | pv -qL 100
     gcloud --project $GCP_PROJECT container fleet mesh enable
     echo
-    echo "$ gcloud --project $GCP_PROJECT container fleet memberships register $GCP_CLUSTER --gke-cluster=$GCP_ZONE/$GCP_CLUSTER --enable-workload-identity  # to register cluster" | pv -qL 100
-    gcloud --project $GCP_PROJECT container fleet memberships register $GCP_CLUSTER --gke-cluster=$GCP_ZONE/$GCP_CLUSTER --enable-workload-identity 
+    echo "$ gcloud --project $GCP_PROJECT container fleet memberships register $GCP_CLUSTER --gke-cluster=$GCP_REGION/$GCP_CLUSTER --enable-workload-identity  # to register cluster" | pv -qL 100
+    gcloud --project $GCP_PROJECT container fleet memberships register $GCP_CLUSTER --gke-cluster=$GCP_REGION/$GCP_CLUSTER --enable-workload-identity 
     echo
     echo "$ gcloud --project $GCP_PROJECT container fleet mesh update --control-plane automatic --memberships $GCP_CLUSTER --project $GCP_PROJECT # to enable automatic control plane management" | pv -qL 100
     gcloud --project $GCP_PROJECT container fleet mesh update --control-plane automatic --memberships $GCP_CLUSTER --project $GCP_PROJECT
 elif [ $MODE -eq 3 ]; then
     export STEP="${STEP},12x"   
     gcloud config set project $GCP_PROJECT > /dev/null 2>&1 
-    gcloud config set compute/zone $GCP_ZONE > /dev/null 2>&1 
+    gcloud config set compute/region $GCP_REGION > /dev/null 2>&1 
     export PROJECT_NUMBER=$(gcloud projects describe $GCP_PROJECT --format="value(projectNumber)")
     export MESH_ID="proj-${PROJECT_NUMBER}" # sets the mesh_id label on the cluster
     export WORKLOAD_POOL=${GCP_PROJECT}.svc.id.goog
@@ -1182,7 +1177,7 @@ source $PROJDIR/.env
 if [ $MODE -eq 1 ]; then
     export STEP="${STEP},13i"
     echo
-    echo "$ gcloud --project \$GCP_PROJECT container clusters get-credentials \$GCP_CLUSTER --zone \$GCP_ZONE # to retrieve the credentials for cluster" | pv -qL 100
+    echo "$ gcloud --project \$GCP_PROJECT container clusters get-credentials \$GCP_CLUSTER --region \$GCP_REGION # to retrieve the credentials for cluster" | pv -qL 100
     echo
     echo "$ cat > \$PROJDIR/tracing.yaml <<EOF
 apiVersion: install.istio.io/v1alpha1
@@ -1210,13 +1205,13 @@ EOF" | pv -qL 100
 elif [ $MODE -eq 2 ]; then
     export STEP="${STEP},13"   
     gcloud config set project $GCP_PROJECT > /dev/null 2>&1 
-    gcloud config set compute/zone $GCP_ZONE > /dev/null 2>&1 
-    kubectl config use-context gke_${GCP_PROJECT}_${GCP_ZONE}_${GCP_CLUSTER} > /dev/null 2>&1 
-    gcloud --project $GCP_PROJECT container clusters get-credentials $GCP_CLUSTER --zone $GCP_ZONE > /dev/null 2>&1 
-    export CLUSTER_LOCATION=$GCP_ZONE
+    gcloud config set compute/region $GCP_REGION > /dev/null 2>&1 
+    kubectl config use-context gke_${GCP_PROJECT}_${GCP_REGION}_${GCP_CLUSTER} > /dev/null 2>&1 
+    gcloud --project $GCP_PROJECT container clusters get-credentials $GCP_CLUSTER --region $GCP_REGION > /dev/null 2>&1 
+    export CLUSTER_LOCATION=$GCP_REGION
     echo
-    echo "$ gcloud --project $GCP_PROJECT container clusters get-credentials $GCP_CLUSTER --zone $GCP_ZONE # to retrieve the credentials for cluster" | pv -qL 100
-    gcloud --project $GCP_PROJECT container clusters get-credentials $GCP_CLUSTER --zone $GCP_ZONE
+    echo "$ gcloud --project $GCP_PROJECT container clusters get-credentials $GCP_CLUSTER --region $GCP_REGION # to retrieve the credentials for cluster" | pv -qL 100
+    gcloud --project $GCP_PROJECT container clusters get-credentials $GCP_CLUSTER --region $GCP_REGION
     echo
     echo "$ cat > $PROJDIR/tracing.yaml <<EOF
 apiVersion: install.istio.io/v1alpha1
@@ -1265,10 +1260,10 @@ EOF
 elif [ $MODE -eq 3 ]; then
     export STEP="${STEP},13x"   
     gcloud config set project $GCP_PROJECT > /dev/null 2>&1 
-    gcloud config set compute/zone $GCP_ZONE > /dev/null 2>&1 
-    kubectl config use-context gke_${GCP_PROJECT}_${GCP_ZONE}_${GCP_CLUSTER} > /dev/null 2>&1 
-    gcloud --project $GCP_PROJECT container clusters get-credentials $GCP_CLUSTER --zone $GCP_ZONE > /dev/null 2>&1 
-    export CLUSTER_LOCATION=$GCP_ZONE
+    gcloud config set compute/region $GCP_REGION > /dev/null 2>&1 
+    kubectl config use-context gke_${GCP_PROJECT}_${GCP_REGION}_${GCP_CLUSTER} > /dev/null 2>&1 
+    gcloud --project $GCP_PROJECT container clusters get-credentials $GCP_CLUSTER --region $GCP_REGION > /dev/null 2>&1 
+    export CLUSTER_LOCATION=$GCP_REGION
     echo
     echo "$ kubectl label namespace $APPLICATION_NAMESPACE istio.io/rev # to remove labels" | pv -qL 100
     kubectl label namespace $APPLICATION_NAMESPACE istio.io/rev-
@@ -1319,9 +1314,9 @@ if [ $MODE -eq 1 ]; then
 elif [ $MODE -eq 2 ]; then
     export STEP="${STEP},14"   
     gcloud config set project $GCP_PROJECT > /dev/null 2>&1 
-    gcloud config set compute/zone $GCP_ZONE > /dev/null 2>&1 
-    kubectl config use-context gke_${GCP_PROJECT}_${GCP_ZONE}_${GCP_CLUSTER} > /dev/null 2>&1 
-    gcloud --project $GCP_PROJECT container clusters get-credentials $GCP_CLUSTER --zone $GCP_ZONE > /dev/null 2>&1 
+    gcloud config set compute/region $GCP_REGION > /dev/null 2>&1 
+    kubectl config use-context gke_${GCP_PROJECT}_${GCP_REGION}_${GCP_CLUSTER} > /dev/null 2>&1 
+    gcloud --project $GCP_PROJECT container clusters get-credentials $GCP_CLUSTER --region $GCP_REGION > /dev/null 2>&1 
     echo
     echo "$ $HOME/istio-${ISTIO_VERSION}/bin/istioctl x uninstall --purge -y # to uninstall Istio" | pv -qL 100
     $HOME/istio-${ISTIO_VERSION}/bin/istioctl x uninstall --purge -y
@@ -1492,7 +1487,7 @@ EOF" | pv -qL 100
 elif [ $MODE -eq 2 ]; then
     export STEP="${STEP},15"
     gcloud config set project $GCP_PROJECT  > /dev/null 2>&1
-    kubectl config use-context gke_${GCP_PROJECT}_${GCP_ZONE}_${GCP_CLUSTER}  > /dev/null 2>&1
+    kubectl config use-context gke_${GCP_PROJECT}_${GCP_REGION}_${GCP_CLUSTER}  > /dev/null 2>&1
     gcloud --project $GCP_PROJECT container clusters get-credentials $GCP_CLUSTER  > /dev/null 2>&1
     echo
     echo "$ export INGRESS_HOST=\$(kubectl -n $APPLICATION_NAMESPACE get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}') # to get ingress IP" | pv -qL 100
